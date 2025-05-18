@@ -74,6 +74,18 @@ async def main():
         else:
             parar()
         await runloop.sleep_ms(10)
+
+        # ORIGINAL
+        # if (not linhaDir) and (not linhaEsq):
+        #     frente(velocidade)
+        # if linhaDir and (not linhaEsq):
+        #     girarDireita(velocidade)
+        # if (not linhaDir) and linhaEsq:
+        #     girarEsquerda(velocidade)
+        # if linhaDir and linhaEsq:
+        #     parar()
+
+        # VERSÃO MAIS ANTIGA
         # if color_sensor.reflection(PORTA_SENSOR_ESQ) > 60 & color_sensor.reflection(PORTA_SENSOR_DIR) > 65:
         #     parar()
         # if color_sensor.reflection(PORTA_SENSOR_ESQ) < 40 & color_sensor.reflection(PORTA_SENSOR_DIR) < 35:
@@ -83,6 +95,7 @@ async def main():
         # if color_sensor.reflection(PORTA_SENSOR_ESQ) > 65:
         #     girarDireita(100)
 
+        # ADAPTAÇÃO DA VERSÃO ANTIGA USANDO AS COMPARAÇÕES MAIS DIRETAS
         # if (SENSOR_ESQ > 60) and (SENSOR_DIR > 65):
         #     parar()
         # elif (SENSOR_ESQ < 60) and (SENSOR_DIR < 65):
