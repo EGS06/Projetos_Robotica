@@ -23,7 +23,7 @@ MOTOR_CENTRAL = port.E
 linha_esq = False
 linha_dir = False
 
-LIMIAR = 50
+LIMIAR = 30
 HISTERESE = 5
 
 def atualizarSensores():
@@ -86,8 +86,8 @@ def girarDireita(velocidade):
 async def main():
     global linha_dir
     global linha_esq
-    await light_matrix.write("!")
-    velocidade = 100
+    await light_matrix.write("!!!")
+    velocidade = 650
     while True:
         atualizarSensores()
         # sensor mais proximo
@@ -98,7 +98,7 @@ async def main():
         elif (not linha_dir) and linha_esq:
             girarEsquerda(velocidade)
         else:
-            parar()
-        await runloop.sleep_ms(10)
+            frente
+        await runloop.sleep_ms(20)
 
 runloop.run(main())
