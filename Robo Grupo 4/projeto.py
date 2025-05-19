@@ -28,25 +28,28 @@ linha_dir = False
 LIMIAR = 50
 HISTERESE = 5
 
-SENSOR_ESQ = color_sensor.reflection(PORTA_SENSOR_ESQ)
-if linha_esq:
-    if SENSOR_ESQ > (LIMIAR + HISTERESE) :
-        print("Linha", SENSOR_ESQ)
-        linha_esq = True
-else:
-    if  SENSOR_ESQ < (LIMIAR - HISTERESE) :
-        print("Não linha", SENSOR_ESQ)
-        linha_esq = False
-
-SENSOR_DIR = color_sensor.reflection(PORTA_SENSOR_DIR)
-if linha_dir:
-    if SENSOR_DIR > (LIMIAR + HISTERESE) :
-        print("Linha", SENSOR_DIR)
-        linha_dir = True
+def atualizarSensores():
+    global linha_esq
+    global linha_dir
+    SENSOR_ESQ = color_sensor.reflection(PORTA_SENSOR_ESQ)
+    if linha_esq:
+        if SENSOR_ESQ > (LIMIAR + HISTERESE) :
+            print("Linha", SENSOR_ESQ)
+            linha_esq = True
     else:
-        if SENSOR_DIR < (LIMIAR - HISTERESE) :
-            print("Não linha", SENSOR_DIR)
-            linha_dir = False
+        if  SENSOR_ESQ < (LIMIAR - HISTERESE) :
+            print("Não linha", SENSOR_ESQ)
+            linha_esq = False
+
+    SENSOR_DIR = color_sensor.reflection(PORTA_SENSOR_DIR)
+    if linha_dir:
+        if SENSOR_DIR > (LIMIAR + HISTERESE) :
+            print("Linha", SENSOR_DIR)
+            linha_dir = True
+        else:
+            if SENSOR_DIR < (LIMIAR - HISTERESE) :
+                print("Não linha", SENSOR_DIR)
+                linha_dir = False
 
 # def estouNaLinha(valor_sensor):
 #    if valor_sensor > (LIMIAR + HISTERESE):
@@ -82,6 +85,8 @@ if linha_dir:
 
 
     async def main():
+        global linha_dir
+        global linha_esq
         await light_matrix.write("!")
         velocidade = 100
         while True:
@@ -89,6 +94,7 @@ if linha_dir:
             # SENSOR_ESQ = color_sensor.reflection(PORTA_SENSOR_ESQ)
             # linhaEsq = estouNaLinha(SENSOR_ESQ)
             # linhaDir = estouNaLinha(SENSOR_DIR)
+            atualizarSensores()
             # sensor mais proximo
             if (not linha_dir) and (not linha_esq):
                 frente(velocidade)
@@ -98,7 +104,7 @@ if linha_dir:
                 girarEsquerda(velocidade)
             else:
                 parar()
-            await runloop.sleep_ms(10)
+            await runloop.sleep_ms(50)
 
             # ORIGINAL
             # if (not linhaDir) and (not linhaEsq):
