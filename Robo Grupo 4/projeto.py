@@ -145,7 +145,7 @@ async def main():
         elif (not linha_dir) and linha_esq:
             girarEsquerda(velocidade)
         else:
-            frente
+            frente(velocidade)
         
     # while True:
     #     atualizarSensores()
@@ -158,6 +158,7 @@ async def main():
     #         girarEsquerda(velocidade)
     #     else:
     #         frente
-
+    await light_matrix.write("fim")
+    parar()
 
 runloop.run(main())
