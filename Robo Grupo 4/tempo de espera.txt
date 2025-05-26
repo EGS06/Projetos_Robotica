@@ -1,0 +1,14 @@
+ agora = time.ticks_ms()
+        if(agora - Ult_atu_cont >= TEMPO_CONT):
+            await light_matrix.write(str(cont))
+            cont += 1
+            cont %= 10
+            Ult_atu_cont = agora
+        if(agora - Ult_atu_motor >= TEMPO_MOTOR):
+            print('entrou')
+            trocarDirecionamento(Tras, 200)
+            if Tras:
+                Tras = False
+            else:
+                Tras = True
+            Ult_atu_motor = agora
