@@ -17,6 +17,7 @@ import motor
 # E = Motor Central
 # F = Sensor Parada
 
+TEMPO_PARADA_MS = 2500
 PORTA_SENSOR_ESQ = port.A
 PORTA_SENSOR_DIR = port.B
 PORTA_SENSOR_PARADA = port.F
@@ -24,6 +25,7 @@ MOTOR_RODA_ESQ = port.C
 MOTOR_RODA_DIR = port.D
 MOTOR_CENTRAL = port.E
 LINHA_CRUZ = 4
+VELOCIDADE = 600
 TEMPO_ENTRE_CRUZ = 5000
 
 linha_esq = False
@@ -96,9 +98,8 @@ def frente(velocidade):
     motor.run(MOTOR_RODA_ESQ, -velocidade)
 
 def parar():
-    velocidade = 0
-    motor.run(MOTOR_RODA_DIR, -velocidade)
-    motor.run(MOTOR_RODA_ESQ, velocidade)
+    motor.run(MOTOR_RODA_DIR, 0)
+    motor.run(MOTOR_RODA_ESQ, 0)
 
 def girarEsquerda(velocidade):
     motor.run(MOTOR_RODA_DIR, velocidade)
@@ -108,6 +109,15 @@ def girarDireita(velocidade):
     motor.run(MOTOR_RODA_DIR, 0)
     motor.run(MOTOR_RODA_ESQ, -velocidade)
 
+def seguirLinha(linha_dir, linha_esq):
+    if (not linha_dir) and (not linha_esq):
+        frente(VELOCIDADE)
+    elif linha_dir and (not linha_esq):
+        girarDireita(VELOCIDADE)
+    elif (not linha_dir) and linha_esq:
+        girarEsquerda(VELOCIDADE)
+    else:
+        frente(VELOCIDADE)
 
 async def main():
     global linha_dir
@@ -116,19 +126,18 @@ async def main():
     global agora
     global ult_tempo
     global contador
-    await light_matrix.write("!")
-    velocidade = 300
+    light_matrix.write("att")
     while (contador < LINHA_CRUZ):
         # Sensor de parada
         agora = time.ticks_ms()
         sensorFinal()
-        if linha_final: 
+        if linha_final:
             contador_linha = contador_linha + 1
             print("viu linha")
             if contador_linha > 5:
                 if((ult_tempo + TEMPO_ENTRE_CRUZ) < agora):
                     contador = contador + 1
-                    await light_matrix.write(str(contador))
+                    light_matrix.write(str(contador))
                     ult_tempo = agora
                     print("confirmou linha")
                     print("numero de cruzamentos" , contador)
@@ -138,27 +147,15 @@ async def main():
 
         # Sensores de movimento
         atualizarSensores()
-        if (not linha_dir) and (not linha_esq):
-            frente(velocidade)
-        elif linha_dir and (not linha_esq):
-            girarDireita(velocidade)
-        elif (not linha_dir) and linha_esq:
-            girarEsquerda(velocidade)
-        else:
-            frente(velocidade)
+        seguirLinha(linha_dir, linha_esq)
         
-    # while True:
-    #     atualizarSensores()
-    #     # sensor mais proximo
-    #     if (not linha_dir) and (not linha_esq):
-    #         frente(velocidade)
-    #     elif linha_dir and (not linha_esq):
-    #         girarDireita(velocidade)
-    #     elif (not linha_dir) and linha_esq:
-    #         girarEsquerda(velocidade)
-    #     else:
-    #         frente
-    await light_matrix.write("fim")
-    parar()
+
+    light_matrix.write("fim")
+    ult_tempo = time.ticks_ms()
+    while True:
+        agora = time.ticks_ms()
+        if (agora - ult_tempo > TEMPO_PARADA_MS):
+            parar()
+    
 
 runloop.run(main())
