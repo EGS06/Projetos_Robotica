@@ -1,5 +1,6 @@
 # motor porta D Motor da Direita não invertido
 # motor porta C Motor da Esquerda invertido
+#yaw sensor
 from hub import light_matrix, port
 import runloop
 import time
@@ -18,14 +19,14 @@ import motor
 # F = Sensor Parada
 
 TEMPO_PARADA_MS = 2500
-PORTA_SENSOR_ESQ = port.A
-PORTA_SENSOR_DIR = port.B
-PORTA_SENSOR_PARADA = port.F
-MOTOR_RODA_ESQ = port.C
-MOTOR_RODA_DIR = port.D
-MOTOR_CENTRAL = port.E
+PORTA_SENSOR_ESQ = port.D
+PORTA_SENSOR_DIR = port.C
+PORTA_SENSOR_PARADA = port.E                                       
+MOTOR_RODA_ESQ = port.B
+MOTOR_RODA_DIR = port.A
+#MOTOR_CENTRAL = port.E
 LINHA_CRUZ = 4
-VELOCIDADE = 600
+VELOCIDADE = 400
 TEMPO_ENTRE_CRUZ = 5000
 
 linha_esq = False
@@ -36,7 +37,8 @@ ult_tempo = time.ticks_ms()
 contador = 0
 contador_linha = 0
 
-LIMIAR = 30
+LIMIAR = 25
+
 HISTERESE = 5
 
 def atualizarSensores():
@@ -102,12 +104,12 @@ def parar():
     motor.run(MOTOR_RODA_ESQ, 0)
 
 def girarEsquerda(velocidade):
-    motor.run(MOTOR_RODA_DIR, velocidade)
+    motor.run(MOTOR_RODA_DIR, int(velocidade * 0.5))
     motor.run(MOTOR_RODA_ESQ, 0)
 
 def girarDireita(velocidade):
     motor.run(MOTOR_RODA_DIR, 0)
-    motor.run(MOTOR_RODA_ESQ, -velocidade)
+    motor.run(MOTOR_RODA_ESQ, int(-velocidade * 0.5))
 
 def seguirLinha(linha_dir, linha_esq):
     if (not linha_dir) and (not linha_esq):
@@ -126,7 +128,7 @@ async def main():
     global agora
     global ult_tempo
     global contador
-    light_matrix.write("att")
+    light_matrix.write("2/1")
     while (contador < LINHA_CRUZ):
         # Sensor de parada
         agora = time.ticks_ms()
@@ -141,6 +143,7 @@ async def main():
                     ult_tempo = agora
                     print("confirmou linha")
                     print("numero de cruzamentos" , contador)
+                    
         else:
             contador_linha = 0
             print("n era linha")
@@ -148,7 +151,7 @@ async def main():
         # Sensores de movimento
         atualizarSensores()
         seguirLinha(linha_dir, linha_esq)
-        
+
 
     light_matrix.write("fim")
     ult_tempo = time.ticks_ms()
@@ -156,6 +159,11 @@ async def main():
         agora = time.ticks_ms()
         if (agora - ult_tempo > TEMPO_PARADA_MS):
             parar()
-    
+        else:
+            atualizarSensores()
+            seguirLinha(linha_dir, linha_esq)
+
+
 
 runloop.run(main())
+  
