@@ -111,15 +111,30 @@ def girarDireita(velocidade):
     motor.run(MOTOR_RODA_DIR, 0)
     motor.run(MOTOR_RODA_ESQ, int(-velocidade * 0.5))
 
-def seguirLinha(linha_dir, linha_esq):
-    if (not linha_dir) and (not linha_esq):
-        frente(VELOCIDADE)
-    elif linha_dir and (not linha_esq):
-        girarDireita(VELOCIDADE)
-    elif (not linha_dir) and linha_esq:
-        girarEsquerda(VELOCIDADE)
-    else:
-        frente(VELOCIDADE)
+# def seguirLinha(linha_dir, linha_esq):
+#     if (not linha_dir) and (not linha_esq):
+#         frente(VELOCIDADE)
+#     elif linha_dir and (not linha_esq):
+#         girarDireita(VELOCIDADE)
+#     elif (not linha_dir) and linha_esq:
+#         girarEsquerda(VELOCIDADE)
+#     else:
+#         frente(VELOCIDADE)
+
+def seguirLinhaProporcional():
+    sensor_esq = color_sensor.reflection(PORTA_SENSOR_ESQ)
+    sensor_dir = color_sensor.reflection(PORTA_SENSOR_DIR)
+
+    erro = sensor_esq - sensor_dir
+    proporcional = 4
+
+    ajuste = erro * proporcional
+    vel_esq = -int(VELOCIDADE - ajuste)
+    vel_dir = int(VELOCIDADE + ajuste)
+
+    motor.run(MOTOR_RODA_ESQ, vel_esq)
+    motor.run(MOTOR_RODA_DIR, vel_dir)
+
 
 async def main():
     global linha_dir
@@ -150,7 +165,8 @@ async def main():
 
         # Sensores de movimento
         atualizarSensores()
-        seguirLinha(linha_dir, linha_esq)
+        # seguirLinha(linha_dir, linha_esq)
+        seguirLinhaProporcional()
 
 
     light_matrix.write("fim")
@@ -161,7 +177,9 @@ async def main():
             parar()
         else:
             atualizarSensores()
-            seguirLinha(linha_dir, linha_esq)
+            # seguirLinha(linha_dir, linha_esq)
+            seguirLinhaProporcional()
+
 
 
 
