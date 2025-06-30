@@ -136,6 +136,52 @@ def seguirLinhaProporcional():
     motor.run(MOTOR_RODA_ESQ, vel_esq)
     motor.run(MOTOR_RODA_DIR, vel_dir)
 
+    runloop.sleep_ms(500)
+
+posicao = 0
+VELOCIDADE = 400
+def seguirLinhaProporcional2():
+    global posicao
+    maxVel = 600
+    sensor_esq = color_sensor.reflection(PORTA_SENSOR_ESQ)
+    sensor_dir = color_sensor.reflection(PORTA_SENSOR_DIR)
+
+    sensor_esq = sensor_esq - 15
+    if (sensor_esq < 0):
+        sensor_esq = 0
+
+    sensor_dir = sensor_dir - 15
+    if (sensor_dir < 0):
+        sensor_dir = 0
+
+    erro = sensor_esq - sensor_dir
+    if(erro == 0):
+        erro = posicao
+    else:
+        posicao = erro
+
+    proporcional = 5
+    print("erro: ", erro, "esq: ", sensor_esq, "dir ", sensor_dir)
+
+    ajuste = erro * proporcional
+    vel_esq = -int(VELOCIDADE - ajuste)
+    vel_dir = int(VELOCIDADE + ajuste)
+
+    if(vel_esq < -maxVel):
+        vel_esq = -maxVel
+    elif (vel_esq > maxVel):
+        vel_esq = maxVel
+
+    if(vel_dir < -maxVel):
+        vel_dir = -maxVel
+    elif (vel_dir > maxVel):
+        vel_dir = maxVel
+
+    motor.run(MOTOR_RODA_ESQ, vel_esq)
+    motor.run(MOTOR_RODA_DIR, vel_dir)
+
+    runloop.sleep_ms(20)
+
 
 async def main():
     global linha_dir
@@ -185,4 +231,3 @@ async def main():
 
 
 runloop.run(main())
-  
