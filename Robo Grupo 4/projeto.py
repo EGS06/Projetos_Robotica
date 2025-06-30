@@ -111,33 +111,6 @@ def girarDireita(velocidade):
     motor.run(MOTOR_RODA_DIR, 0)
     motor.run(MOTOR_RODA_ESQ, int(-velocidade))
 
-# def seguirLinha(linha_dir, linha_esq):
-#    if (not linha_dir) and (not linha_esq):
-#        frente(VELOCIDADE)
-#    elif linha_dir and (not linha_esq):
-#        girarDireita(VELOCIDADE)
-#    elif (not linha_dir) and linha_esq:
-#        girarEsquerda(VELOCIDADE)
-#    else:
-#        frente(VELOCIDADE)
-
-def seguirLinhaProporcional():
-    sensor_esq = color_sensor.reflection(PORTA_SENSOR_ESQ)
-    sensor_dir = color_sensor.reflection(PORTA_SENSOR_DIR)
-
-    erro = sensor_esq - sensor_dir
-    proporcional = 4
-    print("erro: ", erro, "esq: ", sensor_esq, "dir ", sensor_dir)
-
-    ajuste = erro * proporcional
-    vel_esq = -int(VELOCIDADE - ajuste)
-    vel_dir = int(VELOCIDADE + ajuste)
-
-    motor.run(MOTOR_RODA_ESQ, vel_esq)
-    motor.run(MOTOR_RODA_DIR, vel_dir)
-
-    runloop.sleep_ms(500)
-
 posicao = 0
 VELOCIDADE = 400
 def seguirLinhaProporcional2():
@@ -146,24 +119,29 @@ def seguirLinhaProporcional2():
     sensor_esq = color_sensor.reflection(PORTA_SENSOR_ESQ)
     sensor_dir = color_sensor.reflection(PORTA_SENSOR_DIR)
 
-    sensor_esq = sensor_esq - 15
+    sensor_esq = sensor_esq - 20
     if (sensor_esq < 0):
         sensor_esq = 0
 
-    sensor_dir = sensor_dir - 15
+    sensor_dir = sensor_dir - 20
     if (sensor_dir < 0):
         sensor_dir = 0
 
     erro = sensor_esq - sensor_dir
+    # if(erro > 70):
+    #     erro = 70
+    # elif(erro < -70):
+    #     erro = -70
     if(erro == 0):
         erro = posicao
     else:
         posicao = erro
 
-    proporcional = 5
-    print("erro: ", erro, "esq: ", sensor_esq, "dir ", sensor_dir)
 
-    ajuste = erro * proporcional
+    proporcional = 5
+
+
+    ajuste = int(erro * proporcional)
     vel_esq = -int(VELOCIDADE - ajuste)
     vel_dir = int(VELOCIDADE + ajuste)
 
@@ -177,10 +155,12 @@ def seguirLinhaProporcional2():
     elif (vel_dir > maxVel):
         vel_dir = maxVel
 
+    print("erro: ", erro, "esq: ", sensor_esq, "dir ", sensor_dir, "roda dir: ", vel_dir, "roda esq ", vel_esq)
+
     motor.run(MOTOR_RODA_ESQ, vel_esq)
     motor.run(MOTOR_RODA_DIR, vel_dir)
 
-    runloop.sleep_ms(20)
+    runloop.sleep_ms(500)
 
 
 async def main():
@@ -190,7 +170,7 @@ async def main():
     global agora
     global ult_tempo
     global contador
-    light_matrix.write("2/1")
+    light_matrix.write("!")
     while (contador < LINHA_CRUZ):
         # Sensor de parada
         agora = time.ticks_ms()
