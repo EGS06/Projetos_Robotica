@@ -21,13 +21,13 @@ import motor
 TEMPO_PARADA_MS = 2500
 PORTA_SENSOR_ESQ = port.D
 PORTA_SENSOR_DIR = port.C
-PORTA_SENSOR_PARADA = port.E                                       
+PORTA_SENSOR_PARADA = port.E
 MOTOR_RODA_ESQ = port.B
 MOTOR_RODA_DIR = port.A
 #MOTOR_CENTRAL = port.E
 LINHA_CRUZ = 4
-VELOCIDADE = 400
-TEMPO_ENTRE_CRUZ = 5000
+
+TEMPO_ENTRE_CRUZ = 2500
 
 linha_esq = False
 linha_dir = False
@@ -46,37 +46,37 @@ def atualizarSensores():
     global linha_dir
     SENSOR_ESQ = color_sensor.reflection(PORTA_SENSOR_ESQ)
     SENSOR_DIR = color_sensor.reflection(PORTA_SENSOR_DIR)
-    print('se', SENSOR_ESQ, 'sd', SENSOR_DIR)
+    # print('se', SENSOR_ESQ, 'sd', SENSOR_DIR)
     if linha_esq:
         if SENSOR_ESQ < (LIMIAR - HISTERESE) :
-            print("Não Linha Esquerda", SENSOR_ESQ)
+            # print("Não Linha Esquerda", SENSOR_ESQ)
             linha_esq = False
     else:
         if SENSOR_ESQ > (LIMIAR + HISTERESE) :
-            print("linha Esquerda", SENSOR_ESQ)
+            # print("linha Esquerda", SENSOR_ESQ)
             linha_esq = True
-    print("foi pra baixo")
+    # print("foi pra baixo")
     if linha_dir:
         if SENSOR_DIR < (LIMIAR - HISTERESE) :
-            print("Não Linha Direita", SENSOR_DIR)
+            # print("Não Linha Direita", SENSOR_DIR)
             linha_dir = False
     else:
         if SENSOR_DIR > (LIMIAR + HISTERESE) :
-            print("linha Direita", SENSOR_DIR)
+            # print("linha Direita", SENSOR_DIR)
             linha_dir = True
-    print(linha_esq, linha_dir)
+    # print(linha_esq, linha_dir)
 
 def sensorFinal():
     global linha_final
     SENSOR_FINAL = color_sensor.reflection(PORTA_SENSOR_PARADA)
-    print('sf', SENSOR_FINAL)
+    # print('sf', SENSOR_FINAL)
     if linha_final:
         if SENSOR_FINAL < (LIMIAR - HISTERESE - 5) :
-            print("Não linha parada", SENSOR_FINAL)
+            # print("Não linha parada", SENSOR_FINAL)
             linha_final = False
     else:
         if SENSOR_FINAL > (LIMIAR + HISTERESE + 5) :
-            print("linha Parada", SENSOR_FINAL)
+            # print("linha Parada", SENSOR_FINAL)
             linha_final = True
 # def atualizarSensores(valor_sensor):
 #    if valor_sensor > (LIMIAR + HISTERESE):
@@ -104,22 +104,22 @@ def parar():
     motor.run(MOTOR_RODA_ESQ, 0)
 
 def girarEsquerda(velocidade):
-    motor.run(MOTOR_RODA_DIR, int(velocidade * 0.5))
+    motor.run(MOTOR_RODA_DIR, int(velocidade))
     motor.run(MOTOR_RODA_ESQ, 0)
 
 def girarDireita(velocidade):
     motor.run(MOTOR_RODA_DIR, 0)
-    motor.run(MOTOR_RODA_ESQ, int(-velocidade * 0.5))
+    motor.run(MOTOR_RODA_ESQ, int(-velocidade))
 
 # def seguirLinha(linha_dir, linha_esq):
-#     if (not linha_dir) and (not linha_esq):
-#         frente(VELOCIDADE)
-#     elif linha_dir and (not linha_esq):
-#         girarDireita(VELOCIDADE)
-#     elif (not linha_dir) and linha_esq:
-#         girarEsquerda(VELOCIDADE)
-#     else:
-#         frente(VELOCIDADE)
+#    if (not linha_dir) and (not linha_esq):
+#        frente(VELOCIDADE)
+#    elif linha_dir and (not linha_esq):
+#        girarDireita(VELOCIDADE)
+#    elif (not linha_dir) and linha_esq:
+#        girarEsquerda(VELOCIDADE)
+#    else:
+#        frente(VELOCIDADE)
 
 def seguirLinhaProporcional():
     sensor_esq = color_sensor.reflection(PORTA_SENSOR_ESQ)
@@ -127,6 +127,7 @@ def seguirLinhaProporcional():
 
     erro = sensor_esq - sensor_dir
     proporcional = 4
+    print("erro: ", erro, "esq: ", sensor_esq, "dir ", sensor_dir)
 
     ajuste = erro * proporcional
     vel_esq = -int(VELOCIDADE - ajuste)
@@ -134,6 +135,52 @@ def seguirLinhaProporcional():
 
     motor.run(MOTOR_RODA_ESQ, vel_esq)
     motor.run(MOTOR_RODA_DIR, vel_dir)
+
+    runloop.sleep_ms(500)
+
+posicao = 0
+VELOCIDADE = 400
+def seguirLinhaProporcional2():
+    global posicao
+    maxVel = 600
+    sensor_esq = color_sensor.reflection(PORTA_SENSOR_ESQ)
+    sensor_dir = color_sensor.reflection(PORTA_SENSOR_DIR)
+
+    sensor_esq = sensor_esq - 15
+    if (sensor_esq < 0):
+        sensor_esq = 0
+
+    sensor_dir = sensor_dir - 15
+    if (sensor_dir < 0):
+        sensor_dir = 0
+
+    erro = sensor_esq - sensor_dir
+    if(erro == 0):
+        erro = posicao
+    else:
+        posicao = erro
+
+    proporcional = 5
+    print("erro: ", erro, "esq: ", sensor_esq, "dir ", sensor_dir)
+
+    ajuste = erro * proporcional
+    vel_esq = -int(VELOCIDADE - ajuste)
+    vel_dir = int(VELOCIDADE + ajuste)
+
+    if(vel_esq < -maxVel):
+        vel_esq = -maxVel
+    elif (vel_esq > maxVel):
+        vel_esq = maxVel
+
+    if(vel_dir < -maxVel):
+        vel_dir = -maxVel
+    elif (vel_dir > maxVel):
+        vel_dir = maxVel
+
+    motor.run(MOTOR_RODA_ESQ, vel_esq)
+    motor.run(MOTOR_RODA_DIR, vel_dir)
+
+    runloop.sleep_ms(20)
 
 
 async def main():
@@ -150,23 +197,23 @@ async def main():
         sensorFinal()
         if linha_final:
             contador_linha = contador_linha + 1
-            print("viu linha")
+            # print("viu linha")
             if contador_linha > 5:
                 if((ult_tempo + TEMPO_ENTRE_CRUZ) < agora):
                     contador = contador + 1
                     light_matrix.write(str(contador))
                     ult_tempo = agora
-                    print("confirmou linha")
-                    print("numero de cruzamentos" , contador)
-                    
+                    # print("confirmou linha")
+                    # print("numero de cruzamentos" , contador)
+
         else:
             contador_linha = 0
-            print("n era linha")
+            # print("n era linha")
 
         # Sensores de movimento
         atualizarSensores()
         # seguirLinha(linha_dir, linha_esq)
-        seguirLinhaProporcional()
+        seguirLinhaProporcional2()
 
 
     light_matrix.write("fim")
@@ -178,10 +225,9 @@ async def main():
         else:
             atualizarSensores()
             # seguirLinha(linha_dir, linha_esq)
-            seguirLinhaProporcional()
+            seguirLinhaProporcional2()
 
 
 
 
 runloop.run(main())
-  
