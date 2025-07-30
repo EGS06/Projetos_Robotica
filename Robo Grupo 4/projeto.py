@@ -160,8 +160,6 @@ def seguirLinhaProporcional2():
     motor.run(MOTOR_RODA_ESQ, vel_esq)
     motor.run(MOTOR_RODA_DIR, vel_dir)
 
-    runloop.sleep_ms(500)
-
 
 async def main():
     global linha_dir
