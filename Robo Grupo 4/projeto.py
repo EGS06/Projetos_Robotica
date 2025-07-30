@@ -112,54 +112,57 @@ def girarDireita(velocidade):
     motor.run(MOTOR_RODA_ESQ, int(-velocidade))
 
 posicao = 0
-VELOCIDADE = 400
-def seguirLinhaProporcional2():
+erro_anterior = 0
+erro_integral = 0
+
+async def seguirLinhaProporcional2():
     global posicao
-    maxVel = 600
+    global erro_anterior
+    global erro_integral
+
+    maxVel = 800
+    velocidade = 400
+
     sensor_esq = color_sensor.reflection(PORTA_SENSOR_ESQ)
     sensor_dir = color_sensor.reflection(PORTA_SENSOR_DIR)
 
-    sensor_esq = sensor_esq - 20
-    if (sensor_esq < 0):
-        sensor_esq = 0
-
-    sensor_dir = sensor_dir - 20
-    if (sensor_dir < 0):
-        sensor_dir = 0
+    sensor_esq = max(0, sensor_esq)
+    sensor_dir = max(0, sensor_dir)
 
     erro = sensor_esq - sensor_dir
-    # if(erro > 70):
-    #     erro = 70
-    # elif(erro < -70):
-    #     erro = -70
-    if(erro == 0):
+    erro_integral += erro
+    derivada = erro - erro_anterior
+    erro_anterior = erro
+
+    if erro == 0:
         erro = posicao
     else:
         posicao = erro
 
+    proporcional = 3.5
+    integral = 0.02
+    derivativa = 2.5
+    # 1 - p3.5 d 3
+    # if (erro_integral > 5000):
+    #    erro_integral = 5000
+    # if (erro_integral < -5000):
+    #    erro_integral = -5000
 
-    proporcional = 5
+    ajuste = int(erro * proporcional + erro_integral * integral + derivativa * derivada)
 
+    vel_esq = -int(velocidade - ajuste)
+    vel_dir = int(velocidade + ajuste)
 
-    ajuste = int(erro * proporcional)
-    vel_esq = -int(VELOCIDADE - ajuste)
-    vel_dir = int(VELOCIDADE + ajuste)
-
-    if(vel_esq < -maxVel):
-        vel_esq = -maxVel
-    elif (vel_esq > maxVel):
-        vel_esq = maxVel
-
-    if(vel_dir < -maxVel):
-        vel_dir = -maxVel
-    elif (vel_dir > maxVel):
-        vel_dir = maxVel
+    vel_esq = max(-maxVel, min(vel_esq, maxVel))
+    vel_dir = max(-maxVel, min(vel_dir, maxVel))
 
     print("erro: ", erro, "esq: ", sensor_esq, "dir ", sensor_dir, "roda dir: ", vel_dir, "roda esq ", vel_esq)
 
     motor.run(MOTOR_RODA_ESQ, vel_esq)
     motor.run(MOTOR_RODA_DIR, vel_dir)
 
+    await runloop.sleep_ms(10)
+    # vel 400 max_vel 800
 
 async def main():
     global linha_dir
@@ -191,7 +194,7 @@ async def main():
         # Sensores de movimento
         atualizarSensores()
         # seguirLinha(linha_dir, linha_esq)
-        seguirLinhaProporcional2()
+        await seguirLinhaProporcional2()
 
 
     light_matrix.write("fim")
@@ -203,7 +206,7 @@ async def main():
         else:
             atualizarSensores()
             # seguirLinha(linha_dir, linha_esq)
-            seguirLinhaProporcional2()
+            await seguirLinhaProporcional2()
 
 
 
